@@ -172,6 +172,8 @@ def id_system():
         "AYANEO NEXT Advance",
         "AIR",
         "AIR Pro",
+        "AYANEO2",
+        "GEEK",
         ):
         CAPTURE_CONTROLLER = True
         CAPTURE_KEYBOARD = True
