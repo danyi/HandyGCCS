@@ -456,6 +456,11 @@ def get_gyro():
         logger.error(f"{err} | Gyro device not initialized. Ensure bmi160_i2c and i2c_dev modules are loaded. Skipping gyro device setup.")
         gyro_device = False
 
+def append_event(seed_event, button, value, events: list):
+    for button_event in button:
+        event = InputEvent(seed_event.sec, seed_event.usec, button_event[0], button_event[1], value)
+        events.append(event)
+
 async def do_rumble(button=0, interval=10, length=1000, delay=0):
     global controller_device
 
@@ -607,8 +612,10 @@ async def capture_keyboard_events():
                             # BUTTON 5 (Default: MODE) Big button
                             if active in [[96, 105, 133], [88, 97, 125]] and button_on == 1 and button5 not in event_queue:
                                 event_queue.append(button5)
+                                append_event(seed_event, button5, 1, events)
                             elif active == [] and seed_event.code in [88, 96, 97, 105, 125, 133] and button_on == 0 and button5 in event_queue:
-                                this_button = button5
+                                append_event(seed_event, button5, 0, events)
+                                event_queue.remove(button5)
 
                             # BUTTON 6 (Default: Toggle RyzenAdj) Big button + Small Button
                             if active == [32, 88, 97, 125] and button_on == 1 and button6 not in event_queue:
@@ -635,8 +642,13 @@ async def capture_keyboard_events():
                                     this_button = button4
                                 # AYA Space | Default: MODE
                                 elif button_on == 104 and event_queue == []:
+                                    append_event(seed_event, button5, 1, events)
                                     event_queue.append(button5)
-                                    this_button = button5
+
+                            elif active == [] and seed_event.code in [97, 125] and button_on == 0:
+                                if button5 in event_queue:
+                                    append_event(seed_event, button5, 0, events)
+                                    event_queue.remove(button5)
 
                             # Small button | Default: QAM
                             if active == [32, 125] and button_on == 1 and button2 not in event_queue:
